@@ -11,4 +11,59 @@ services:
     profiles: ["DEV"]
     build:
       context: ./view
-      dockerfile:
+      dockerfile: ../containers/containerfiles/view.dev.containerfile
+    environment:
+      API_TARGET: http://ai-service-dev:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./view/src:/app/src:z
+      - ./view/index.html:/app/index.html:z
+      - ./view/vite.config.ts:/app/vite.config.ts:z
+    depends_on:
+      - ai-service-dev
+
+  ai-service-dev:
+    profiles: ["DEV"]
+    build:
+      context: ./services
+      dockerfile: ../containers/containerfiles/services.dev.containerfile
+    environment:
+      <<: *mongodb-env
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_EFFORT: ${LLM_EFFORT:-medium}
+      # Fallbacks each SDK reads when LLM_API_KEY is empty.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MEMORY_WINDOW: ${MEMORY_WINDOW:-50}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-insecure-change-me}
+      DJANGO_DEBUG: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/ai-service:/app:z
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: docker.io/library/mongo:8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mongodb-data:

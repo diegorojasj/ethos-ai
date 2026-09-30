@@ -21,6 +21,7 @@ build/
 .eggs/
 
 # IDE and editor files
+.zed/
 .vscode/
 .idea/
 *.swp
