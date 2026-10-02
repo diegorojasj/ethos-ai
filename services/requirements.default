@@ -1,0 +1,5 @@
+Django==6.1.1
+django-mongodb-backend==6.1.0
+# LLM SDKs: anthropic for LLM_PROVIDER=anthropic, openai for every other preset (OpenAI-compatible APIs).
+anthropic==1.9.0
+openai==3.22.1
