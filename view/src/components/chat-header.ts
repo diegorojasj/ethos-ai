@@ -1,13 +1,13 @@
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { emit, type Persona } from './types.ts';
+import { emit, STATUS_LABELS, type AIStatus, type Persona } from './types.ts';
 import './chat-avatar.ts';
 
 @customElement('ethos-chat-header')
 export class ChatHeader extends LitElement {
   @property({ attribute: false }) persona!: Persona;
+  @property({ attribute: false }) status!: AIStatus;
   @property({ type: Boolean }) typing = false;
-  @property({ type: Boolean }) minimized = false;
 
   static styles = css`
     :host {
@@ -51,30 +51,38 @@ export class ChatHeader extends LitElement {
       font-size: 12px;
       color: var(--ethos-muted);
     }
+    .status.unavailable,
+    .status.offline {
+      color: color-mix(in srgb, var(--ethos-status-offline, #e41e3f) 85%, #000);
+    }
     sl-icon-button {
       font-size: 18px;
       color: var(--ethos-accent);
     }
   `;
 
+  /** e.g. "anthropic · claude-opus-5 · checked 10:42:07". */
+  private statusDetail() {
+    const { provider, model, checkedAt, message } = this.status;
+    const parts = [provider, model, checkedAt ? `checked ${new Date(checkedAt).toLocaleTimeString()}` : ''];
+    return [parts.filter(Boolean).join(' · '), message].filter(Boolean).join('\n');
+  }
+
   render() {
-    const { persona } = this;
+    const { persona, status } = this;
     return html`
-      <button class="identity" @click=${() => emit(this, this.minimized ? 'ethos-restore' : 'ethos-personalize')}>
-        <ethos-chat-avatar .emoji=${persona.avatar} .label=${persona.name} size="32" online></ethos-chat-avatar>
+      <button class="identity" @click=${() => emit(this, 'ethos-personalize')}>
+        <ethos-chat-avatar .emoji=${persona.avatar} .label=${persona.name} size="32" .status=${status.state}></ethos-chat-avatar>
         <div class="text">
           <div class="name">${persona.name}</div>
-          <div class="status">${this.typing ? 'Typing…' : 'AI assistant · Active now'}</div>
+          <sl-tooltip content=${this.statusDetail() || STATUS_LABELS[status.state]} placement="bottom-start" hoist>
+            <div class="status ${status.state}" aria-live="polite">
+              ${this.typing ? 'Typing…' : `AI assistant · ${STATUS_LABELS[status.state]}`}
+            </div>
+          </sl-tooltip>
         </div>
       </button>
-      ${this.minimized
-        ? null
-        : html`<sl-icon-button name="sliders" label="Personalize assistant" @click=${() => emit(this, 'ethos-personalize')}></sl-icon-button>`}
-      <sl-icon-button
-        name=${this.minimized ? 'chevron-up' : 'dash-lg'}
-        label=${this.minimized ? 'Expand chat' : 'Minimize chat'}
-        @click=${() => emit(this, this.minimized ? 'ethos-restore' : 'ethos-minimize')}
-      ></sl-icon-button>
+      <sl-icon-button name="sliders" label="Personalize assistant" @click=${() => emit(this, 'ethos-personalize')}></sl-icon-button>
       <sl-icon-button name="x-lg" label="Close chat" @click=${() => emit(this, 'ethos-close')}></sl-icon-button>
     `;
   }

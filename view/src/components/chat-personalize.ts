@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { AVATAR_CHOICES, DEFAULT_PERSONA, emit, type Persona } from './types.ts';
+import { AVATAR_CHOICES, DEFAULT_PERSONA, emit, SYSTEM_PROMPT_MAX_LENGTH, type Persona } from './types.ts';
 
 /** Messenger's "Customize chat" panel, repurposed to shape the AI's persona. Lives in a contained drawer. */
 @customElement('ethos-chat-personalize')
@@ -49,6 +49,9 @@ export class ChatPersonalize extends LitElement {
       border-color: var(--ethos-accent);
       box-shadow: 0 0 0 2px var(--ethos-surface) inset;
     }
+    .prompt-reset {
+      margin-top: 4px;
+    }
     .actions {
       display: flex;
       flex-direction: column;
@@ -94,6 +97,23 @@ export class ChatPersonalize extends LitElement {
         <section>
           <h3>Avatar</h3>
           ${this.avatars(p.avatar)}
+        </section>
+
+        <section>
+          <sl-textarea
+            label="Instructions"
+            help-text="How the assistant should behave. Its name and identity are set separately."
+            size="small"
+            rows="6"
+            resize="vertical"
+            maxlength=${SYSTEM_PROMPT_MAX_LENGTH}
+            placeholder="Loading the default instructions…"
+            .value=${p.systemPrompt}
+            @sl-change=${(e: Event) => this.change('systemPrompt', (e.target as HTMLTextAreaElement).value.trim())}
+          ></sl-textarea>
+          <sl-button class="prompt-reset" size="small" variant="text" @click=${() => this.change('systemPrompt', '')}>
+            <sl-icon slot="prefix" name="arrow-counterclockwise"></sl-icon>Reset to default
+          </sl-button>
         </section>
 
         <div class="actions">

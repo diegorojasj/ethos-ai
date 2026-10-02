@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { emit, type Persona } from './types.ts';
+import { emit, STATUS_LABELS, type AIStatusState, type Persona } from './types.ts';
 import './chat-avatar.ts';
 
 /** Floating "chat head" bubble in the bottom-right corner. */
@@ -8,6 +8,7 @@ import './chat-avatar.ts';
 export class ChatLauncher extends LitElement {
   @property({ attribute: false }) persona!: Persona;
   @property({ type: Number }) unread = 0;
+  @property() status: AIStatusState = 'unknown';
 
   static styles = css`
     button {
@@ -39,10 +40,12 @@ export class ChatLauncher extends LitElement {
   `;
 
   render() {
+    const label = `Chat with ${this.persona.name}`;
+    const problem = this.status === 'unavailable' || this.status === 'offline' ? ` · ${STATUS_LABELS[this.status]}` : '';
     return html`
-      <sl-tooltip content="Chat with ${this.persona.name}" placement="left">
-        <button aria-label="Open chat with ${this.persona.name}" @click=${() => emit(this, 'ethos-open')}>
-          <ethos-chat-avatar .emoji=${this.persona.avatar} .label=${this.persona.name} size="56" online></ethos-chat-avatar>
+      <sl-tooltip content="${label}${problem}" placement="left">
+        <button aria-label="Open chat with ${this.persona.name}${problem}" @click=${() => emit(this, 'ethos-open')}>
+          <ethos-chat-avatar .emoji=${this.persona.avatar} .label=${this.persona.name} size="56" .status=${this.status}></ethos-chat-avatar>
           ${this.unread > 0 ? html`<sl-badge variant="danger" pill pulse>${this.unread}</sl-badge>` : null}
         </button>
       </sl-tooltip>

@@ -1,13 +1,15 @@
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import type { AIStatusState } from './types.ts';
 
-/** Emoji avatar with Messenger's green "active now" dot. */
+/** Emoji avatar with Messenger's "active now" dot, colored by the assistant's status. */
 @customElement('ethos-chat-avatar')
 export class ChatAvatar extends LitElement {
   @property() emoji = '🤖';
   @property() label = 'Assistant';
   @property({ type: Number }) size = 32;
-  @property({ type: Boolean }) online = false;
+  /** Shows the status dot when set. */
+  @property({ reflect: true }) status?: AIStatusState;
 
   static styles = css`
     :host {
@@ -34,8 +36,18 @@ export class ChatAvatar extends LitElement {
       min-width: 8px;
       min-height: 8px;
       border-radius: 50%;
-      background: #31a24c;
+      background: var(--ethos-status-unknown, #bcc0c4);
       border: 2px solid var(--ethos-surface, #fff);
+      transition: background 0.2s ease;
+    }
+    :host([status='available']) .dot {
+      background: var(--ethos-status-available, #31a24c);
+    }
+    :host([status='unavailable']) .dot {
+      background: var(--ethos-status-unavailable, #f7b928);
+    }
+    :host([status='offline']) .dot {
+      background: var(--ethos-status-offline, #e41e3f);
     }
   `;
 
@@ -44,7 +56,7 @@ export class ChatAvatar extends LitElement {
       <sl-avatar style="--avatar-size:${this.size}px" label=${this.label}>
         <span slot="icon" class="emoji">${this.emoji}</span>
       </sl-avatar>
-      ${this.online ? html`<span class="dot" style="--avatar-size:${this.size}px"></span>` : null}
+      ${this.status ? html`<span class="dot" style="--avatar-size:${this.size}px"></span>` : null}
     `;
   }
 }
