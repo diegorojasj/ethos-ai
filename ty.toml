@@ -1,0 +1,4 @@
+[environment]
+python = "services/.venv"
+# The Django project root, so `src.*` imports resolve like they do at runtime (python main.py).
+extra-paths = ["services/ai-service"]

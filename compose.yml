@@ -5,7 +5,6 @@ x-mongodb-env: &mongodb-env
   DB_PASSWORD: ${DB_PASSWORD}
   DB_NAME: ${DB_NAME}
 
-
 services:
   view-dev:
     profiles: ["DEV"]
@@ -13,7 +12,7 @@ services:
       context: ./view
       dockerfile: ../containers/containerfiles/view.dev.containerfile
     environment:
-      API_TARGET: http://ai-service-dev:8000
+      API_TARGET: ${API_TARGET:-http://ai-service-dev:8000}
     ports:
       - "5173:5173"
     volumes:
@@ -34,7 +33,8 @@ services:
       LLM_MODEL: ${LLM_MODEL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
-      LLM_EFFORT: ${LLM_EFFORT:-medium}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-16000}
+      LLM_EFFORT: ${LLM_EFFORT:-}
       # Fallbacks each SDK reads when LLM_API_KEY is empty.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
